@@ -1,54 +1,57 @@
 # Endless Runner Game
 
-An endless runner game created with Python and the Pygame library. This project serves as a comprehensive example of a complete, playable game with a focus on clean, modular code.
+An endless runner game built with **Python** and **Pygame**.  
+This project demonstrates how to structure a complete, playable game with clean and modular code.
 
 ## Features
 
--   **Infinite Gameplay:** The game features a continuously scrolling background and procedurally generated obstacles, providing endless replayability.
--   **Player Physics:** The player character has gravity and jump mechanics, requiring precise timing to navigate the obstacles.
--   **Scoring System:** A live score tracks how long you've survived, and a high score is saved locally, persisting between game sessions.
--   **Main Menu & Game Over Screen:** A main menu provides a clean start, while a game over screen displays your final score and allows you to restart the game.
--   **Visual Effects:** Particle effects are generated on the player's landing for added visual feedback.
--   **Modular Code:** The game is structured with separate files for different components (`player`, `obstacles`, `background`), making it easy to understand and expand.
+- **Infinite Gameplay** – Continuously scrolling background with procedurally generated obstacles for endless replayability.  
+- **Player Physics** – Gravity and jump mechanics that require precise timing.  
+- **Scoring System** – Live score during play, plus a locally saved high score that persists between sessions.  
+- **Main Menu & Game Over Screen** – Start fresh from the menu, and view your final score with an option to restart.  
+- **Visual Effects** – Particle effects when the player lands for better feedback.  
+- **Modular Code** – Components like `player`, `obstacles`, and `background` are split into separate files for easier expansion.
 
 ## Getting Started
 
 ### Prerequisites
 
-To run this game, you need to have **Python** and the **Pygame** library installed.
+Install **Python** and the **Pygame** library:
 
 ```bash
 pip install pygame
+```
 
-How to Run
-Clone this repository or download the project files.
+### Running the Game
 
-Open your terminal or command prompt.
+1. Clone or download this repository.  
+2. Open a terminal or command prompt.  
+3. Navigate to the project folder.  
+4. Run the game with:
 
-Navigate to the main project directory.
-
-Run the main game file with the following command:
-
-Bash
-
+```bash
 python main.py
-Project Structure
-The project is organized into logical folders to keep the codebase clean:
+```
 
+## Project Structure
+
+```
 EndlessRunner/
-|-- assets/
-|   |-- sounds/
-|   |-- sprites/
-|
-|-- scripts/
-|   |-- background.py
-|   |-- config.py
-|   |-- obstacle.py
-|   |-- particles.py
-|   |-- player.py
-|
-|-- main.py
-|-- highscore.txt
-|-- README.md
-How to Contribute
-Feel free to fork the repository, make improvements, and submit a pull request.
+│-- assets/
+│   └─ sprites/
+│
+│-- scripts/
+│   ├─ background.py
+│   ├─ config.py
+│   ├─ obstacle.py
+│   ├─ particles.py
+│   └─ player.py
+│
+│-- main.py
+│-- highscore.txt
+│-- README.md
+```
+
+## Contributing
+
+Fork the repo, make improvements, and open a pull request. Contributions are welcome!
