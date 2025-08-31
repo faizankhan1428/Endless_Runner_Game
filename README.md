@@ -5,7 +5,7 @@ This project demonstrates how to structure a complete, playable game with clean 
 
 ## Demo
 
-<video src="Game/game.mp4" controls width="600"></video>
+![Game Demo](Game/game.gif)
 
 ## Features
 
@@ -52,7 +52,7 @@ EndlessRunner/
 │   └─ player.py
 │
 │-- Game/
-│   └─ game.mp4
+│   └─ game.gif
 │
 │-- main.py
 │-- highscore.txt
