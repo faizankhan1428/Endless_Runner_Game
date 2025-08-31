@@ -3,6 +3,10 @@
 An endless runner game built with **Python** and **Pygame**.  
 This project demonstrates how to structure a complete, playable game with clean and modular code.
 
+## Demo
+
+<video src="Game/game.mp4" controls width="600"></video>
+
 ## Features
 
 - **Infinite Gameplay** – Continuously scrolling background with procedurally generated obstacles for endless replayability.  
@@ -46,6 +50,9 @@ EndlessRunner/
 │   ├─ obstacle.py
 │   ├─ particles.py
 │   └─ player.py
+│
+│-- Game/
+│   └─ game.mp4
 │
 │-- main.py
 │-- highscore.txt
