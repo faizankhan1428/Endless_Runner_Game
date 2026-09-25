@@ -1,0 +1,34 @@
+{
+  "name": "endless-runner-game",
+  "version": "2.0.0",
+  "description": "A feature-rich, responsive endless runner game built with HTML5 Canvas, JavaScript, and CSS3",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "dev": "python -m http.server 8000",
+    "serve": "npx http-server -p 8000"
+  },
+  "keywords": [
+    "game",
+    "endless-runner",
+    "canvas",
+    "javascript",
+    "html5",
+    "web-game",
+    "responsive",
+    "mobile-friendly"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "bugs": {
+    "url": ""
+  },
+  "homepage": "",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
