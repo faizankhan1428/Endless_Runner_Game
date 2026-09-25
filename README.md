@@ -2,8 +2,6 @@
 
 A feature-rich, responsive endless runner game built with **HTML5 Canvas**, **JavaScript**, and **CSS3**. This advanced edition includes 18+ features including mobile support, power-ups, multiple difficulty levels, character selection, and much more.
 
-![Game Preview](Game/game.gif)
-
 ## ✨ Features
 
 ### Core Gameplay
@@ -102,14 +100,12 @@ Endless_Runner_Game-main/
 │   └── sprites/
 │
 ├── scripts/                # Original Python scripts (legacy)
-│   ├── background.py
-│   ├── config.py
-│   ├── obstacle.py
-│   ├── particles.py
-│   └── player.py
-│
-└── Game/                   # Game demo assets
-    └── game.gif
+    ├── background.py
+    ├── config.py
+    ├── obstacle.py
+    ├── particles.py
+    └── player.py
+
 ```
 
 ## 🎮 Game Mechanics
