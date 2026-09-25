@@ -99,7 +99,7 @@ Endless_Runner_Game-main/
 ├── assets/                 # Asset folder (for future images)
 │   └── sprites/
 │
-├── scripts/                # Original Python scripts (legacy)
+└── scripts/                # Original Python scripts (legacy)
     ├── background.py
     ├── config.py
     ├── obstacle.py
