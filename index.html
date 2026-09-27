@@ -12,26 +12,26 @@
             -webkit-tap-highlight-color: transparent;
         }
         body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden;
             touch-action: none;
         }
         #gameContainer {
             position: relative;
-            border-radius: 15px;
+            width: 100vw;
+            height: 100vh;
             overflow: hidden;
-            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
-            max-width: 100vw;
-            max-height: 100vh;
         }
         canvas {
             display: block;
             background: #87CEEB;
+            width: 100%;
+            height: 100%;
         }
         #ui {
             position: absolute;
@@ -54,19 +54,45 @@
         .hidden {
             display: none !important;
         }
+        @keyframes slideIn {
+            from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(-50%) translateY(0); opacity: 1; }
+            to { transform: translateX(-50%) translateY(-100%); opacity: 0; }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px #ffd700; }
+            50% { box-shadow: 0 0 20px #ffd700, 0 0 30px #ffd700; }
+        }
         h1 {
-            font-size: clamp(28px, 6vw, 48px);
-            margin-bottom: 20px;
-            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
+            font-size: clamp(32px, 6vw, 52px);
+            margin-bottom: 25px;
+            text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.8);
             background: linear-gradient(45deg, #ffd700, #ff6b6b, #4ecdc4);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            font-weight: 800;
+        }
+        h2 {
+            font-size: clamp(24px, 4vw, 36px);
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
+            color: white;
+            font-weight: 700;
         }
         p {
-            font-size: clamp(16px, 3vw, 24px);
+            font-size: clamp(16px, 3vw, 22px);
             margin: 10px 0;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.6);
+            color: #f0f0f0;
+            line-height: 1.4;
         }
         .instruction {
             font-size: clamp(14px, 2.5vw, 18px);
@@ -242,39 +268,125 @@
         <canvas id="gameCanvas"></canvas>
         
         <div id="hud" class="hidden">
-            <div style="display: flex; flex-direction: column; gap: 5px;">
+            <div style="display: flex; gap: 10px; justify-content: center; align-items: center; position: absolute; top: 10px; left: 50%; transform: translateX(-50%);">
                 <div class="hud-item">Score: <span id="hudScore">0</span></div>
                 <div class="hud-item">Coins: <span id="hudCoins">0</span></div>
                 <div class="hud-item">Combo: x<span id="hudCombo">1</span></div>
             </div>
-            <button id="pauseBtn">⏸</button>
+            <button id="pauseBtn" style="position: absolute; top: 10px; right: 10px;">⏸</button>
         </div>
         
         <div id="powerupIndicator" class="hidden"></div>
         
-        <div id="touchControls" class="hidden">
-            <div class="touch-btn" id="jumpBtn">⬆</div>
+        <div id="touchControls" class="hidden" style="display: none !important;">
+            <div class="touch-btn" id="jumpBtn">JUMP</div>
         </div>
         
         <div id="ui">
             <h1 id="title">Endless Runner</h1>
             <div id="menuContent">
-                <p id="highScoreText">High Score: 0</p>
-                <div class="difficulty-selector">
-                    <button class="diff-btn" data-diff="easy">Easy</button>
-                    <button class="diff-btn active" data-diff="medium">Medium</button>
-                    <button class="diff-btn" data-diff="hard">Hard</button>
+                <p id="highScoreText" style="font-size: 16px; margin-bottom: 10px;">High Score: 0</p>
+                <div id="dailyChallengeBox" style="background: rgba(255,215,0,0.2); padding: 12px; border-radius: 10px; margin: 10px 0; border: 2px solid #ffd700;">
+                    <div style="font-size: 16px; font-weight: bold; color: #ffd700;">📅 Daily Challenge</div>
+                    <div id="dailyChallengeText" style="font-size: 13px; margin: 5px 0;">Loading...</div>
+                    <div id="dailyChallengeProgress" style="font-size: 11px; color: #aaa;"></div>
                 </div>
-                <div class="character-selector">
-                    <div class="char-btn active" data-char="blue" style="background: #4169E1;"></div>
-                    <div class="char-btn" data-char="green" style="background: #32CD32;"></div>
-                    <div class="char-btn" data-char="purple" style="background: #9370DB;"></div>
-                    <div class="char-btn" data-char="orange" style="background: #FF8C00;"></div>
+                <div style="margin: 15px 0;">
+                    <div style="font-size: 14px; margin-bottom: 8px; color: #ddd;">Difficulty:</div>
+                    <div class="difficulty-selector">
+                        <button class="diff-btn" data-diff="easy">Easy</button>
+                        <button class="diff-btn active" data-diff="medium">Medium</button>
+                        <button class="diff-btn" data-diff="hard">Hard</button>
+                    </div>
                 </div>
-                <div class="menu-buttons">
+                <div style="margin: 15px 0;">
+                    <div style="font-size: 14px; margin-bottom: 8px; color: #ddd;">Character:</div>
+                    <div class="character-selector">
+                        <div class="char-btn active" data-char="blue" style="background: #4169E1;"></div>
+                        <div class="char-btn" data-char="green" style="background: #32CD32;"></div>
+                        <div class="char-btn" data-char="purple" style="background: #9370DB;"></div>
+                        <div class="char-btn" data-char="orange" style="background: #FF8C00;"></div>
+                    </div>
+                </div>
+                <div class="menu-buttons" style="margin-top: 20px;">
                     <button class="menu-btn" id="startBtn">▶ Start Game</button>
-                    <button class="menu-btn secondary" id="leaderboardBtn">🏆 Leaderboard</button>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px;">
+                        <button class="menu-btn secondary" id="shopBtn">🛒 Shop</button>
+                        <button class="menu-btn secondary" id="statsBtn">📊 Stats</button>
+                        <button class="menu-btn secondary" id="settingsBtn">⚙ Settings</button>
+                        <button class="menu-btn secondary" id="leaderboardBtn">🏆 Leaderboard</button>
+                    </div>
                 </div>
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.2);">
+                    <p style="font-size: 12px; color: #888; margin: 0;">Developed by</p>
+                    <p style="font-size: 16px; font-weight: bold; color: #ffd700; margin: 5px 0;">Muhammad Faizan</p>
+                </div>
+            </div>
+            <div id="shopContent" style="display: none;">
+                <h2>🛒 Coin Shop</h2>
+                <p style="margin-bottom: 20px;">Your Coins: <span id="shopCoins">0</span></p>
+                <div id="shopItems" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; max-width: 600px;"></div>
+                <button class="menu-btn" id="shopBackBtn">← Back</button>
+            </div>
+            <div id="statsContent" style="display: none;">
+                <h2>📊 Statistics</h2>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 20px 0; max-width: 500px;">
+                    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
+                        <div style="font-size: 24px;">🎮</div>
+                        <div>Games Played</div>
+                        <div style="font-size: 24px; font-weight: bold; color: #ffd700;" id="statGames">0</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
+                        <div style="font-size: 24px;">🏆</div>
+                        <div>High Score</div>
+                        <div style="font-size: 24px; font-weight: bold; color: #ffd700;" id="statHighScore">0</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
+                        <div style="font-size: 24px;">💰</div>
+                        <div>Total Coins</div>
+                        <div style="font-size: 24px; font-weight: bold; color: #ffd700;" id="statCoins">0</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
+                        <div style="font-size: 24px;">📏</div>
+                        <div>Total Distance</div>
+                        <div style="font-size: 24px; font-weight: bold; color: #ffd700;" id="statDistance">0m</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
+                        <div style="font-size: 24px;">🔥</div>
+                        <div>Current Streak</div>
+                        <div style="font-size: 24px; font-weight: bold; color: #ffd700;" id="statStreak">0 days</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
+                        <div style="font-size: 24px;">🏅</div>
+                        <div>Achievements</div>
+                        <div style="font-size: 24px; font-weight: bold; color: #ffd700;" id="statAchievements">0/10</div>
+                    </div>
+                </div>
+                <h3 style="margin-top: 20px;">🏅 Achievements</h3>
+                <div id="achievementsList" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 15px 0; max-height: 200px; overflow-y: auto;"></div>
+                <button class="menu-btn" id="statsBackBtn">← Back</button>
+            </div>
+            <div id="settingsContent" style="display: none;">
+                <h2>⚙ Settings</h2>
+                <div style="margin: 20px 0; max-width: 400px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-bottom: 10px;">
+                        <span>🔊 Sound Effects</span>
+                        <button class="menu-btn" id="soundToggle" style="padding: 8px 16px; font-size: 14px;">ON</button>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-bottom: 10px;">
+                        <span>🌙 Dark Mode</span>
+                        <button class="menu-btn" id="themeToggle" style="padding: 8px 16px; font-size: 14px;">OFF</button>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-bottom: 10px;">
+                        <span>🌤 Weather Effects</span>
+                        <button class="menu-btn" id="weatherToggle" style="padding: 8px 16px; font-size: 14px;">ON</button>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px;">
+                        <span>🎨 Particle Effects</span>
+                        <button class="menu-btn" id="particlesToggle" style="padding: 8px 16px; font-size: 14px;">ON</button>
+                    </div>
+                </div>
+                <button class="menu-btn" id="settingsBackBtn">← Back</button>
             </div>
             <div id="gameOverContent" style="display: none;">
                 <p id="finalScore">Score: 0</p>
@@ -297,7 +409,7 @@
                 <div id="leaderboardList" style="margin: 20px 0; text-align: left;"></div>
                 <button class="menu-btn" id="backBtn">← Back</button>
             </div>
-            <p class="instruction" id="instruction">Tap or Press SPACE to Jump</p>
+            <p class="instruction" id="instruction" style="display: none;">Tap or Press SPACE to Jump</p>
         </div>
     </div>
 
@@ -327,6 +439,26 @@
                 day: { sky: '#87CEEB', ground: '#8B4513', groundDark: '#654321' },
                 night: { sky: '#1a1a2e', ground: '#2d3436', groundDark: '#636e72' },
                 sunset: { sky: '#ff7e5f', ground: '#8B4513', groundDark: '#654321' }
+            },
+            SHOP_ITEMS: {
+                extraLife: { name: 'Extra Life', price: 50, icon: '❤', description: 'Start with 4 lives instead of 3' },
+                magnet: { name: 'Coin Magnet', price: 100, icon: '🧲', description: 'Attract coins from nearby' },
+                doubleJump: { name: 'Triple Jump', price: 150, icon: '🦘', description: 'Jump up to 3 times' },
+                shield: { name: 'Shield Start', price: 200, icon: '🛡', description: 'Start with shield active' },
+                rainbow: { name: 'Rainbow Mode', price: 300, icon: '🌈', description: 'Rainbow color trail effect' },
+                neon: { name: 'Neon Glow', price: 250, icon: '✨', description: 'Neon glow effect on player' }
+            },
+            ACHIEVEMENTS: {
+                firstRun: { name: 'First Steps', icon: '👶', description: 'Complete your first run', condition: (s) => s.totalGamesPlayed >= 1 },
+                score100: { name: 'Century', icon: '💯', description: 'Score 100 points', condition: (s) => s.highScore >= 100 },
+                score500: { name: 'High Scorer', icon: '🏆', description: 'Score 500 points', condition: (s) => s.highScore >= 500 },
+                score1000: { name: 'Master', icon: '👑', description: 'Score 1000 points', condition: (s) => s.highScore >= 1000 },
+                coins100: { name: 'Coin Collector', icon: '💰', description: 'Collect 100 total coins', condition: (s) => s.totalCoins >= 100 },
+                coins500: { name: 'Rich', icon: '💎', description: 'Collect 500 total coins', condition: (s) => s.totalCoins >= 500 },
+                streak7: { name: 'Week Warrior', icon: '🔥', description: '7 day playing streak', condition: (s) => s.streak >= 7 },
+                streak30: { name: 'Monthly Legend', icon: '⭐', description: '30 day playing streak', condition: (s) => s.streak >= 30 },
+                hardMode: { name: 'Hardcore', icon: '💪', description: 'Complete a run on Hard difficulty', condition: (s) => s.lastDifficulty === 'hard' },
+                perfectRun: { name: 'Perfect', icon: '⚡', description: 'Complete a run without losing a life', condition: (s) => s.lastRunLives === 3 }
             }
         };
 
@@ -334,25 +466,13 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
-        // Responsive canvas
+        // Responsive canvas - full screen on all devices
         function resizeCanvas() {
-            const container = document.getElementById('gameContainer');
-            const maxWidth = window.innerWidth;
-            const maxHeight = window.innerHeight;
-            const ratio = CONFIG.SCREEN_WIDTH / CONFIG.SCREEN_HEIGHT;
-            
-            let newWidth = maxWidth;
-            let newHeight = newWidth / ratio;
-            
-            if (newHeight > maxHeight) {
-                newHeight = maxHeight;
-                newWidth = newHeight * ratio;
-            }
-            
-            canvas.width = CONFIG.SCREEN_WIDTH;
-            canvas.height = CONFIG.SCREEN_HEIGHT;
-            canvas.style.width = newWidth + 'px';
-            canvas.style.height = newHeight + 'px';
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            CONFIG.SCREEN_WIDTH = window.innerWidth;
+            CONFIG.SCREEN_HEIGHT = window.innerHeight;
+            CONFIG.GROUND_Y = CONFIG.SCREEN_HEIGHT - CONFIG.GROUND_HEIGHT;
         }
         
         resizeCanvas();
@@ -369,6 +489,9 @@
         const powerupIndicator = document.getElementById('powerupIndicator');
         const touchControls = document.getElementById('touchControls');
         const menuContent = document.getElementById('menuContent');
+        const shopContent = document.getElementById('shopContent');
+        const statsContent = document.getElementById('statsContent');
+        const settingsContent = document.getElementById('settingsContent');
         const gameOverContent = document.getElementById('gameOverContent');
         const pauseContent = document.getElementById('pauseContent');
         const leaderboardContent = document.getElementById('leaderboardContent');
@@ -383,6 +506,8 @@
         let highScore = parseInt(localStorage.getItem('highScore')) || 0;
         let totalCoins = parseInt(localStorage.getItem('totalCoins')) || 0;
         let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+        let purchasedItems = JSON.parse(localStorage.getItem('purchasedItems')) || [];
+        let equippedItem = localStorage.getItem('equippedItem') || null;
         let difficulty = 'medium';
         let selectedCharacter = 'blue';
         let currentTheme = 'day';
@@ -395,6 +520,21 @@
         let speedBoost = 0;
         let shield = 0;
         let invincible = 0;
+        let soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
+        let weather = 'clear'; // clear, rain, snow
+        let weatherParticles = [];
+        let streak = parseInt(localStorage.getItem('streak')) || 0;
+        let lastPlayDate = localStorage.getItem('lastPlayDate') || '';
+        let dailyChallenge = JSON.parse(localStorage.getItem('dailyChallenge')) || null;
+        let achievements = JSON.parse(localStorage.getItem('achievements')) || [];
+        let totalGamesPlayed = parseInt(localStorage.getItem('totalGamesPlayed')) || 0;
+        let totalDistance = parseInt(localStorage.getItem('totalDistance')) || 0;
+        let lastDifficulty = localStorage.getItem('lastDifficulty') || 'medium';
+        let lastRunLives = 3;
+        let initialLives = 3;
+        let powerupSpawnWarning = 0;
+        let obstacleWarning = 0;
+        let milestoneReward = 0;
 
         // Player class
         class Player {
@@ -472,9 +612,9 @@
                 // Shield effect
                 if (shield > 0) {
                     ctx.beginPath();
-                    ctx.arc(this.x + this.width/2, this.y + this.height/2, 40, 0, Math.PI * 2);
+                    ctx.arc(this.x + this.width/2, this.y + this.height/2, 45, 0, Math.PI * 2);
                     ctx.strokeStyle = `rgba(0, 255, 255, ${0.3 + Math.sin(Date.now() / 100) * 0.2})`;
-                    ctx.lineWidth = 3;
+                    ctx.lineWidth = 4;
                     ctx.stroke();
                 }
                 
@@ -483,32 +623,124 @@
                     ctx.globalAlpha = 0.5 + Math.sin(Date.now() / 50) * 0.5;
                 }
                 
-                // Animated player
+                // Animated player - Professional character design
                 const squish = this.onGround ? Math.sin(this.animFrame * Math.PI / 2) * 3 : 0;
+                const bounce = this.onGround ? Math.abs(Math.sin(this.animFrame * Math.PI)) * 2 : 0;
                 
+                const centerX = this.x + this.width / 2;
+                const centerY = this.y + this.height / 2 + squish - bounce;
+                
+                // Body (rounded rectangle)
                 ctx.fillStyle = color;
-                ctx.fillRect(this.x - squish/2, this.y + squish, this.width + squish, this.height - squish);
+                ctx.beginPath();
+                ctx.roundRect(this.x - squish/2, this.y + squish - bounce, this.width + squish, this.height - squish + bounce, 10);
+                ctx.fill();
                 
-                // Eyes
+                // Head (circle on top)
+                ctx.beginPath();
+                ctx.arc(centerX, this.y + 15 - bounce, 18, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Eyes (larger, more expressive)
                 ctx.fillStyle = 'white';
-                ctx.fillRect(this.x + 10, this.y + 12 + squish, 10, 10);
-                ctx.fillRect(this.x + 30, this.y + 12 + squish, 10, 10);
+                ctx.beginPath();
+                ctx.ellipse(centerX - 6, this.y + 12 - bounce, 6, 8, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(centerX + 6, this.y + 12 - bounce, 6, 8, 0, 0, Math.PI * 2);
+                ctx.fill();
                 
+                // Pupils (follow movement)
                 ctx.fillStyle = 'black';
-                ctx.fillRect(this.x + 13, this.y + 15 + squish, 5, 5);
-                ctx.fillRect(this.x + 33, this.y + 15 + squish, 5, 5);
+                const pupilOffset = this.velocityX * 0.5;
+                ctx.beginPath();
+                ctx.arc(centerX - 6 + pupilOffset, this.y + 12 - bounce, 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(centerX + 6 + pupilOffset, this.y + 12 - bounce, 3, 0, Math.PI * 2);
+                ctx.fill();
                 
-                // Mouth
-                ctx.fillStyle = 'black';
+                // Eye shine
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(centerX - 7 + pupilOffset, this.y + 10 - bounce, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(centerX + 5 + pupilOffset, this.y + 10 - bounce, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Mouth (more expressive)
+                ctx.fillStyle = '#333';
                 if (this.isJumping) {
-                    ctx.fillRect(this.x + 15, this.y + 35 + squish, 20, 5);
-                } else {
+                    // Open mouth when jumping
                     ctx.beginPath();
-                    ctx.arc(this.x + 25, this.y + 35 + squish, 8, 0, Math.PI);
+                    ctx.ellipse(centerX, this.y + 25 - bounce, 5, 4, 0, 0, Math.PI * 2);
                     ctx.fill();
+                } else if (this.onGround && Math.abs(this.velocityY) < 0.5) {
+                    // Smile when on ground
+                    ctx.beginPath();
+                    ctx.arc(centerX, this.y + 22 - bounce, 6, 0.1 * Math.PI, 0.9 * Math.PI);
+                    ctx.stroke();
+                } else {
+                    // Neutral expression
+                    ctx.fillRect(centerX - 4, this.y + 22 - bounce, 8, 2);
                 }
                 
+                // Arms (animated)
+                ctx.fillStyle = color;
+                const armSwing = Math.sin(this.animFrame * Math.PI) * 10;
+                ctx.beginPath();
+                ctx.ellipse(centerX - 15, this.y + 35 - bounce + armSwing, 6, 12, -0.3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(centerX + 15, this.y + 35 - bounce - armSwing, 6, 12, 0.3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Legs (animated)
+                const legSwing = Math.sin(this.animFrame * Math.PI) * 8;
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.ellipse(centerX - 8, this.y + this.height - 5 + legSwing, 8, 10, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(centerX + 8, this.y + this.height - 5 - legSwing, 8, 10, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Feet
+                ctx.fillStyle = '#333';
+                ctx.beginPath();
+                ctx.ellipse(centerX - 8, this.y + this.height + legSwing, 10, 5, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(centerX + 8, this.y + this.height - legSwing, 10, 5, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
                 ctx.globalAlpha = 1;
+                
+                // Rainbow trail effect
+                if (equippedItem === 'rainbow') {
+                    const hue = (Date.now() / 10) % 360;
+                    ctx.strokeStyle = `hsl(${hue}, 100%, 50%)`;
+                    ctx.lineWidth = 4;
+                    ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
+                    ctx.shadowBlur = 15;
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.lineTo(centerX - 30, centerY + 40);
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                }
+                
+                // Neon glow effect
+                if (equippedItem === 'neon') {
+                    ctx.shadowColor = color;
+                    ctx.shadowBlur = 25;
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.roundRect(this.x - squish/2, this.y + squish - bounce, this.width + squish, this.height - squish + bounce, 10);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
             }
 
             getBounds() {
@@ -696,39 +928,79 @@
                 this.y = y;
                 this.size = size;
                 this.color = color || '#ffffff';
-                this.velocityX = Math.random() * 10 - 5;
-                this.velocityY = Math.random() * -8 - 5;
-                this.gravity = 0.4;
-                this.lifetime = 40 + Math.random() * 20;
+                this.velocityX = (Math.random() - 0.5) * 4;
+                this.velocityY = (Math.random() - 0.5) * 4 - 2;
+                this.gravity = 0.2;
+                this.life = 1;
+                this.decay = 0.02 + Math.random() * 0.02;
             }
 
             update() {
-                this.velocityY += this.gravity;
                 this.x += this.velocityX;
                 this.y += this.velocityY;
-                this.lifetime--;
+                this.velocityY += this.gravity;
+                this.life -= this.decay;
             }
 
             draw() {
-                ctx.globalAlpha = this.lifetime / 60;
+                ctx.globalAlpha = this.life;
                 ctx.fillStyle = this.color;
-                ctx.fillRect(this.x, this.y, this.size, this.size);
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * this.life, 0, Math.PI * 2);
+                ctx.fill();
                 ctx.globalAlpha = 1;
             }
 
             isDead() {
-                return this.lifetime <= 0;
+                return this.life <= 0;
             }
         }
 
-        // Background class with parallax
+        // Weather particle class
+        class WeatherParticle {
+            constructor(type) {
+                this.type = type;
+                this.x = Math.random() * CONFIG.SCREEN_WIDTH;
+                this.y = Math.random() * CONFIG.SCREEN_HEIGHT;
+                this.size = type === 'rain' ? 2 : 4;
+                this.speed = type === 'rain' ? 15 + Math.random() * 5 : 2 + Math.random() * 2;
+                this.wind = type === 'rain' ? 2 : 1;
+            }
+
+            update() {
+                this.y += this.speed;
+                this.x += this.wind;
+                
+                if (this.y > CONFIG.SCREEN_HEIGHT) {
+                    this.y = -10;
+                    this.x = Math.random() * CONFIG.SCREEN_WIDTH;
+                }
+                if (this.x > CONFIG.SCREEN_WIDTH) {
+                    this.x = -10;
+                }
+            }
+
+            draw() {
+                if (this.type === 'rain') {
+                    ctx.strokeStyle = 'rgba(174, 194, 224, 0.6)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y);
+                    ctx.lineTo(this.x + this.wind, this.y + 15);
+                    ctx.stroke();
+                } else if (this.type === 'snow') {
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+
+        // Background class - simplified for full screen with clouds and birds
         class Background {
             constructor() {
-                this.layers = [
-                    { offset: 0, speed: 0.2, color: '#e0e0e0' },
-                    { offset: 0, speed: 0.5, color: '#c0c0c0' },
-                    { offset: 0, speed: 1, color: '#a0a0a0' }
-                ];
+                this.offset = 0;
                 this.clouds = [];
                 for (let i = 0; i < 5; i++) {
                     this.clouds.push({
@@ -738,6 +1010,15 @@
                         speed: Math.random() * 0.5 + 0.2
                     });
                 }
+                this.birds = [];
+                for (let i = 0; i < 3; i++) {
+                    this.birds.push({
+                        x: Math.random() * CONFIG.SCREEN_WIDTH,
+                        y: Math.random() * 150 + 80,
+                        wingPhase: Math.random() * Math.PI * 2,
+                        speed: Math.random() * 1 + 0.5
+                    });
+                }
             }
 
             update() {
@@ -745,18 +1026,27 @@
                 if (speedBoost > 0) speed *= 1.5;
                 if (slowMotion > 0) speed *= 0.5;
                 
-                this.layers.forEach(layer => {
-                    layer.offset -= speed * layer.speed;
-                    if (layer.offset <= -CONFIG.SCREEN_WIDTH) {
-                        layer.offset = 0;
-                    }
-                });
+                this.offset -= speed;
+                if (this.offset <= -50) {
+                    this.offset = 0;
+                }
                 
+                // Update clouds
                 this.clouds.forEach(cloud => {
                     cloud.x -= cloud.speed;
                     if (cloud.x + cloud.size < 0) {
                         cloud.x = CONFIG.SCREEN_WIDTH + Math.random() * 100;
                         cloud.y = Math.random() * 200 + 50;
+                    }
+                });
+                
+                // Update birds
+                this.birds.forEach(bird => {
+                    bird.x -= bird.speed;
+                    bird.wingPhase += 0.2;
+                    if (bird.x < -30) {
+                        bird.x = CONFIG.SCREEN_WIDTH + Math.random() * 50;
+                        bird.y = Math.random() * 150 + 80;
                     }
                 });
             }
@@ -781,29 +1071,25 @@
                     ctx.fill();
                 });
                 
-                // Parallax mountains
-                this.layers.forEach((layer, index) => {
-                    ctx.fillStyle = layer.color;
-                    ctx.globalAlpha = 0.3 + index * 0.2;
-                    
-                    for (let i = layer.offset; i < CONFIG.SCREEN_WIDTH + 100; i += 200) {
-                        ctx.beginPath();
-                        ctx.moveTo(i, CONFIG.SCREEN_HEIGHT - CONFIG.GROUND_HEIGHT);
-                        ctx.lineTo(i + 100, CONFIG.SCREEN_HEIGHT - CONFIG.GROUND_HEIGHT - 100 - index * 30);
-                        ctx.lineTo(i + 200, CONFIG.SCREEN_HEIGHT - CONFIG.GROUND_HEIGHT);
-                        ctx.fill();
-                    }
-                    
-                    ctx.globalAlpha = 1;
+                // Birds
+                ctx.fillStyle = '#333';
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                this.birds.forEach(bird => {
+                    const wingY = Math.sin(bird.wingPhase) * 5;
+                    ctx.beginPath();
+                    ctx.moveTo(bird.x - 10, bird.y + wingY);
+                    ctx.quadraticCurveTo(bird.x, bird.y - 5, bird.x + 10, bird.y + wingY);
+                    ctx.stroke();
                 });
                 
                 // Ground
                 ctx.fillStyle = theme.ground;
                 ctx.fillRect(0, CONFIG.SCREEN_HEIGHT - CONFIG.GROUND_HEIGHT, CONFIG.SCREEN_WIDTH, CONFIG.GROUND_HEIGHT);
                 
-                // Ground pattern
+                // Simple ground pattern
                 ctx.fillStyle = theme.groundDark;
-                for (let i = this.layers[2].offset; i < CONFIG.SCREEN_WIDTH; i += 50) {
+                for (let i = this.offset; i < CONFIG.SCREEN_WIDTH + 50; i += 50) {
                     ctx.fillRect(i, CONFIG.SCREEN_HEIGHT - CONFIG.GROUND_HEIGHT, 25, CONFIG.GROUND_HEIGHT);
                 }
                 
@@ -818,23 +1104,9 @@
                 const R = (num >> 16) + amt;
                 const G = (num >> 8 & 0x00FF) + amt;
                 const B = (num & 0x0000FF) + amt;
-                return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
-                    (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
-                    (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+                return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
             }
         }
-
-        // Game objects
-        let player;
-        let obstacles = [];
-        let coinObjects = [];
-        let powerups = [];
-        let particles = [];
-        let background;
-        let obstacleTimer = 0;
-        let coinTimer = 0;
-        let powerupTimer = 0;
-        let scoreTimer = 0;
 
         // Initialize game
         function initGame() {
@@ -848,6 +1120,7 @@
             combo = 1;
             comboTimer = 0;
             lives = 3;
+            initialLives = 3;
             obstacleTimer = 0;
             coinTimer = 0;
             powerupTimer = 0;
@@ -860,6 +1133,116 @@
             shield = 0;
             invincible = 0;
             currentTheme = 'day';
+            
+            // Initialize weather
+            weatherParticles = [];
+            if (weather !== 'clear') {
+                for (let i = 0; i < 100; i++) {
+                    weatherParticles.push(new WeatherParticle(weather));
+                }
+            }
+            
+            // Apply equipped shop item effects
+            if (equippedItem === 'extraLife') {
+                lives = 4;
+                initialLives = 4;
+            }
+            if (equippedItem === 'shield') {
+                shield = 10000;
+            }
+            if (equippedItem === 'doubleJump') {
+                player.maxJumps = 3;
+            }
+            
+            // Update streak
+            const today = new Date().toDateString();
+            if (lastPlayDate !== today) {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                if (lastPlayDate === yesterday.toDateString()) {
+                    streak++;
+                } else if (lastPlayDate !== '') {
+                    streak = 1;
+                } else {
+                    streak = 1;
+                }
+                lastPlayDate = today;
+                localStorage.setItem('streak', streak);
+                localStorage.setItem('lastPlayDate', lastPlayDate);
+            }
+            
+            // Generate daily challenge if needed
+            if (!dailyChallenge || dailyChallenge.date !== today) {
+                const challenges = [
+                    { type: 'coins', target: 50, reward: 25, description: 'Collect 50 coins' },
+                    { type: 'score', target: 500, reward: 30, description: 'Score 500 points' },
+                    { type: 'distance', target: 1000, reward: 20, description: 'Run 1000m' }
+                ];
+                dailyChallenge = {
+                    ...challenges[Math.floor(Math.random() * challenges.length)],
+                    date: today,
+                    completed: false
+                };
+                localStorage.setItem('dailyChallenge', JSON.stringify(dailyChallenge));
+            }
+            
+            totalGamesPlayed++;
+            localStorage.setItem('totalGamesPlayed', totalGamesPlayed);
+        }
+
+        // Check and unlock achievements
+        function checkAchievements() {
+            const stats = {
+                totalGamesPlayed,
+                highScore,
+                totalCoins,
+                streak,
+                lastDifficulty,
+                lastRunLives
+            };
+            
+            let newAchievements = [];
+            
+            Object.entries(CONFIG.ACHIEVEMENTS).forEach(([id, achievement]) => {
+                if (!achievements.includes(id) && achievement.condition(stats)) {
+                    achievements.push(id);
+                    newAchievements.push(achievement);
+                }
+            });
+            
+            if (newAchievements.length > 0) {
+                localStorage.setItem('achievements', JSON.stringify(achievements));
+                // Show achievement notification
+                newAchievements.forEach(a => {
+                    showAchievementNotification(a);
+                });
+            }
+        }
+
+        // Show achievement notification
+        function showAchievementNotification(achievement) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: linear-gradient(135deg, #ffd700, #ff6b6b);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                font-weight: bold;
+                z-index: 1000;
+                animation: slideIn 0.5s ease-out;
+                box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            `;
+            notification.innerHTML = `${achievement.icon} Achievement Unlocked: ${achievement.name}`;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.5s ease-out';
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
         }
 
         // Collision detection
@@ -921,15 +1304,37 @@
             // Spawn power-ups
             powerupTimer += deltaTime;
             if (powerupTimer >= 15000) {
+                powerupSpawnWarning = 2000; // 2 second warning
                 powerups.push(new PowerUp());
                 powerupTimer = 0;
             }
+            
+            // Power-up spawn warning timer
+            if (powerupSpawnWarning > 0) {
+                powerupSpawnWarning -= deltaTime;
+            }
+            
+            // Obstacle spawn warning
+            if (obstacleTimer >= spawnRate - 1000) {
+                obstacleWarning = 1000;
+            }
+            if (obstacleWarning > 0) {
+                obstacleWarning -= deltaTime;
+            }
 
-            // Update score
+            //	Update score
             scoreTimer += deltaTime;
             if (scoreTimer >= 1000) {
                 score += combo;
                 scoreTimer = 0;
+                
+                // Check score milestones
+                const milestones = [100, 250, 500, 750, 1000, 1500, 2000, 3000, 5000];
+                if (milestones.includes(score) && milestoneReward === 0) {
+                    const reward = Math.floor(score / 10);
+                    coins += reward;
+                    milestoneReward = 2000; // Show notification for 2 seconds
+                }
             }
 
             // Update obstacles
@@ -947,6 +1352,9 @@
             // Update particles
             particles.forEach(particle => particle.update());
             particles = particles.filter(particle => !particle.isDead());
+
+            // Update weather particles
+            weatherParticles.forEach(particle => particle.update());
 
             // Check coin collisions
             const playerBounds = player.getBounds();
@@ -1064,6 +1472,9 @@
             background.draw();
 
             if (gameState === 'playing' || gameState === 'paused' || gameState === 'gameover') {
+                // Draw weather particles
+                weatherParticles.forEach(particle => particle.draw());
+                
                 // Draw coins
                 coinObjects.forEach(coin => coin.draw());
                 
@@ -1079,11 +1490,48 @@
                 // Draw particles
                 particles.forEach(particle => particle.draw());
                 
+                // Draw power-up spawn warning indicator
+                if (powerupSpawnWarning > 0) {
+                    const alpha = (powerupSpawnWarning / 2000) * 0.5;
+                    ctx.fillStyle = `rgba(255, 215, 0, ${alpha})`;
+                    ctx.fillRect(CONFIG.SCREEN_WIDTH - 60, 10, 50, 20);
+                    ctx.fillStyle = 'white';
+                    ctx.font = '12px Arial';
+                    ctx.fillText('⚡ PWR!', CONFIG.SCREEN_WIDTH - 55, 25);
+                }
+                
+                // Draw obstacle warning indicator
+                if (obstacleWarning > 0) {
+                    const alpha = (obstacleWarning / 1000) * 0.5;
+                    ctx.fillStyle = `rgba(255, 0, 0, ${alpha})`;
+                    ctx.fillRect(CONFIG.SCREEN_WIDTH - 60, 35, 50, 20);
+                    ctx.fillStyle = 'white';
+                    ctx.font = '12px Arial';
+                    ctx.fillText('⚠ OBSTACLE', CONFIG.SCREEN_WIDTH - 58, 50);
+                }
+                
+                // Draw milestone reward notification
+                if (milestoneReward > 0) {
+                    ctx.fillStyle = `rgba(0, 255, 0, ${milestoneReward / 2000})`;
+                    ctx.fillRect(CONFIG.SCREEN_WIDTH / 2 - 100, 50, 200, 30);
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold 14px Arial';
+                    ctx.fillText(`🎉 Milestone! +${Math.floor(milestoneReward / 100)} coins`, CONFIG.SCREEN_WIDTH / 2 - 80, 70);
+                    milestoneReward -= 16;
+                }
+                
                 // Draw lives
                 ctx.fillStyle = '#FF4444';
                 ctx.font = '24px Arial';
                 for (let i = 0; i < lives; i++) {
                     ctx.fillText('❤', 10 + i * 30, CONFIG.SCREEN_HEIGHT - 20);
+                }
+                
+                // Draw combo multiplier indicator
+                if (combo > 1) {
+                    ctx.fillStyle = '#FFD700';
+                    ctx.font = 'bold 20px Arial';
+                    ctx.fillText(`x${combo}`, CONFIG.SCREEN_WIDTH - 50, 30);
                 }
                 
                 // Flash effect
@@ -1116,6 +1564,9 @@
             touchControls.classList.add('hidden');
             
             menuContent.style.display = 'block';
+            shopContent.style.display = 'none';
+            statsContent.style.display = 'none';
+            settingsContent.style.display = 'none';
             gameOverContent.style.display = 'none';
             pauseContent.style.display = 'none';
             leaderboardContent.style.display = 'none';
@@ -1123,6 +1574,16 @@
             title.textContent = 'Endless Runner';
             document.getElementById('highScoreText').textContent = `High Score: ${highScore} | Total Coins: ${totalCoins}`;
             instruction.textContent = 'Tap or Press SPACE to Jump';
+            
+            // Update daily challenge display
+            if (dailyChallenge) {
+                document.getElementById('dailyChallengeText').textContent = dailyChallenge.description;
+                if (dailyChallenge.completed) {
+                    document.getElementById('dailyChallengeProgress').textContent = '✅ Completed! +' + dailyChallenge.reward + ' coins';
+                } else {
+                    document.getElementById('dailyChallengeProgress').textContent = 'Reward: ' + dailyChallenge.reward + ' coins';
+                }
+            }
         }
 
         // Start game
@@ -1161,6 +1622,11 @@
         function gameOver() {
             gameState = 'gameover';
             
+            // Track last run stats for achievements
+            lastDifficulty = difficulty;
+            lastRunLives = lives;
+            localStorage.setItem('lastDifficulty', lastDifficulty);
+            
             // Update high score
             if (score > highScore) {
                 highScore = score;
@@ -1171,11 +1637,40 @@
             totalCoins += coins;
             localStorage.setItem('totalCoins', totalCoins);
             
+            // Update total distance
+            totalDistance += score;
+            localStorage.setItem('totalDistance', totalDistance);
+            
+            // Check daily challenge completion
+            if (dailyChallenge && !dailyChallenge.completed) {
+                let challengeMet = false;
+                switch(dailyChallenge.type) {
+                    case 'coins':
+                        challengeMet = coins >= dailyChallenge.target;
+                        break;
+                    case 'score':
+                        challengeMet = score >= dailyChallenge.target;
+                        break;
+                    case 'distance':
+                        challengeMet = score >= dailyChallenge.target;
+                        break;
+                }
+                if (challengeMet) {
+                    dailyChallenge.completed = true;
+                    totalCoins += dailyChallenge.reward;
+                    localStorage.setItem('totalCoins', totalCoins);
+                    localStorage.setItem('dailyChallenge', JSON.stringify(dailyChallenge));
+                }
+            }
+            
             // Update leaderboard
             leaderboard.push({ score, coins, date: new Date().toLocaleDateString() });
             leaderboard.sort((a, b) => b.score - a.score);
             leaderboard = leaderboard.slice(0, 10);
             localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+            
+            // Check achievements
+            checkAchievements();
             
             ui.classList.remove('hidden');
             hud.classList.add('hidden');
@@ -1199,6 +1694,7 @@
             gameState = 'leaderboard';
             
             menuContent.style.display = 'none';
+            shopContent.style.display = 'none';
             gameOverContent.style.display = 'none';
             pauseContent.style.display = 'none';
             leaderboardContent.style.display = 'block';
@@ -1218,6 +1714,140 @@
                     </div>
                 `).join('');
             }
+        }
+
+        // Show shop
+        function showShop() {
+            gameState = 'shop';
+            
+            menuContent.style.display = 'none';
+            shopContent.style.display = 'block';
+            gameOverContent.style.display = 'none';
+            pauseContent.style.display = 'none';
+            leaderboardContent.style.display = 'none';
+            
+            title.textContent = '🛒 COIN SHOP';
+            document.getElementById('shopCoins').textContent = totalCoins;
+            
+            const shopItemsDiv = document.getElementById('shopItems');
+            shopItemsDiv.innerHTML = '';
+            
+            Object.entries(CONFIG.SHOP_ITEMS).forEach(([id, item]) => {
+                const isPurchased = purchasedItems.includes(id);
+                const isEquipped = equippedItem === id;
+                const canAfford = totalCoins >= item.price;
+                
+                const itemDiv = document.createElement('div');
+                itemDiv.style.cssText = `
+                    padding: 15px;
+                    background: rgba(255,255,255,0.1);
+                    border-radius: 10px;
+                    text-align: center;
+                    border: ${isEquipped ? '3px solid #ffd700' : '2px solid transparent'};
+                `;
+                
+                itemDiv.innerHTML = `
+                    <div style="font-size: 32px; margin-bottom: 10px;">${item.icon}</div>
+                    <div style="font-weight: bold; margin-bottom: 5px;">${item.name}</div>
+                    <div style="font-size: 12px; color: #aaa; margin-bottom: 10px;">${item.description}</div>
+                    <div style="font-weight: bold; color: #ffd700; margin-bottom: 10px;">${item.price} Coins</div>
+                    <button class="menu-btn" style="font-size: 12px; padding: 8px 16px;" 
+                        ${isPurchased ? (isEquipped ? 'disabled' : '') : (!canAfford ? 'disabled' : '')}
+                        onclick="${isPurchased ? (isEquipped ? '' : `equipItem('${id}')`) : `buyItem('${id}')`}">
+                        ${isEquipped ? 'Equipped' : (isPurchased ? 'Equip' : (canAfford ? 'Buy' : 'Not enough coins'))}
+                    </button>
+                `;
+                
+                shopItemsDiv.appendChild(itemDiv);
+            });
+        }
+
+        // Buy item
+        function buyItem(itemId) {
+            const item = CONFIG.SHOP_ITEMS[itemId];
+            if (totalCoins >= item.price && !purchasedItems.includes(itemId)) {
+                totalCoins -= item.price;
+                purchasedItems.push(itemId);
+                localStorage.setItem('totalCoins', totalCoins);
+                localStorage.setItem('purchasedItems', JSON.stringify(purchasedItems));
+                showShop();
+            }
+        }
+
+        // Equip item
+        function equipItem(itemId) {
+            if (purchasedItems.includes(itemId)) {
+                equippedItem = itemId;
+                localStorage.setItem('equippedItem', itemId);
+                showShop();
+            }
+        }
+
+        // Show stats
+        function showStats() {
+            gameState = 'stats';
+            
+            menuContent.style.display = 'none';
+            shopContent.style.display = 'none';
+            statsContent.style.display = 'block';
+            settingsContent.style.display = 'none';
+            gameOverContent.style.display = 'none';
+            pauseContent.style.display = 'none';
+            leaderboardContent.style.display = 'none';
+            
+            title.textContent = '📊 STATISTICS';
+            document.getElementById('statGames').textContent = totalGamesPlayed;
+            document.getElementById('statHighScore').textContent = highScore;
+            document.getElementById('statCoins').textContent = totalCoins;
+            document.getElementById('statDistance').textContent = Math.floor(totalDistance / 100) + 'm';
+            document.getElementById('statStreak').textContent = streak + ' days';
+            document.getElementById('statAchievements').textContent = achievements.length + '/10';
+            
+            // Display achievements
+            const achievementsList = document.getElementById('achievementsList');
+            achievementsList.innerHTML = '';
+            
+            Object.entries(CONFIG.ACHIEVEMENTS).forEach(([id, achievement]) => {
+                const isUnlocked = achievements.includes(id);
+                const achievementDiv = document.createElement('div');
+                achievementDiv.style.cssText = `
+                    padding: 10px;
+                    background: ${isUnlocked ? 'rgba(255,215,0,0.2)' : 'rgba(255,255,255,0.05)'};
+                    border-radius: 8px;
+                    text-align: center;
+                    border: ${isUnlocked ? '2px solid #ffd700' : '2px solid transparent'};
+                    opacity: ${isUnlocked ? '1' : '0.5'};
+                `;
+                achievementDiv.innerHTML = `
+                    <div style="font-size: 24px;">${achievement.icon}</div>
+                    <div style="font-size: 12px; font-weight: bold; margin-top: 5px;">${achievement.name}</div>
+                    <div style="font-size: 10px; color: #aaa;">${achievement.description}</div>
+                `;
+                achievementsList.appendChild(achievementDiv);
+            });
+        }
+
+        // Show settings
+        function showSettings() {
+            gameState = 'settings';
+            
+            menuContent.style.display = 'none';
+            shopContent.style.display = 'none';
+            statsContent.style.display = 'none';
+            settingsContent.style.display = 'block';
+            gameOverContent.style.display = 'none';
+            pauseContent.style.display = 'none';
+            leaderboardContent.style.display = 'none';
+            
+            title.textContent = '⚙ SETTINGS';
+            document.getElementById('soundToggle').textContent = soundEnabled ? 'ON' : 'OFF';
+        }
+
+        // Toggle sound
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('soundEnabled', soundEnabled);
+            document.getElementById('soundToggle').textContent = soundEnabled ? 'ON' : 'OFF';
         }
 
         // Input handling - Keyboard
@@ -1273,6 +1903,13 @@
         document.getElementById('quitBtn').addEventListener('click', showMenu);
         document.getElementById('leaderboardBtn').addEventListener('click', showLeaderboard);
         document.getElementById('backBtn').addEventListener('click', showMenu);
+        document.getElementById('shopBtn').addEventListener('click', showShop);
+        document.getElementById('shopBackBtn').addEventListener('click', showMenu);
+        document.getElementById('statsBtn').addEventListener('click', showStats);
+        document.getElementById('statsBackBtn').addEventListener('click', showMenu);
+        document.getElementById('settingsBtn').addEventListener('click', showSettings);
+        document.getElementById('settingsBackBtn').addEventListener('click', showMenu);
+        document.getElementById('soundToggle').addEventListener('click', toggleSound);
 
         // Pause button
         document.getElementById('pauseBtn').addEventListener('click', pauseGame);
